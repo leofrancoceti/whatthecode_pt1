@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart'; 
 import 'register_screen.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _userController = TextEditingController();
   final _passController = TextEditingController();
   String? _errorText;
+  bool _isLoading = false;
 
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -38,16 +40,35 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _login() {
-    if (_userController.text == "admin" && _passController.text == "1234") {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()), 
+  Future<void> _login() async {
+    if (_userController.text.isEmpty || _passController.text.isEmpty) {
+      setState(() => _errorText = "Por favor complete todos los campos");
+      return;
+    }
+
+    setState(() {
+      _errorText = null;
+      _isLoading = true;
+    });
+
+    try {
+      final isValid = await AuthService.login(
+        _userController.text.trim(),
+        _passController.text.trim(),
       );
-    } else {
-      setState(() {
-        _errorText = "Usuario o contraseña incorrectos";
-      });
+
+      if (isValid && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorText = e.toString());
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -96,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen>
                         TextField(
                           controller: _userController,
                           decoration: const InputDecoration(
-                              labelText: 'Usuario', // 
+                              labelText: 'Usuario',
                               border: OutlineInputBorder()),
                         ),
                         const SizedBox(height: 15),
@@ -109,15 +130,22 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _login,
+                          onPressed: _isLoading ? null : _login,
                           style: ElevatedButton.styleFrom(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 40)),
-                          child: const Text("Ingresar"),
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text("Ingresar"),
                         ),
-                            TextButton(onPressed: () => Navigator.push(context,MaterialPageRoute(builder: (_) => const RegisterScreen()), ),
-                             child: const Text('¿No tienes cuenta? Regístrate'),
-                            ),
+                        TextButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
+                          ),
+                          child: const Text('¿No tienes cuenta? Regístrate'),
+                        ),
                         if (_errorText != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 12),

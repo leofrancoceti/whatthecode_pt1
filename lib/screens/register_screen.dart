@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Para navegar de regreso al login
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,93 +13,88 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  bool _isLoading = false;
   String? _errorText;
 
-  void _register() {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _errorText = "Las contraseñas no coinciden";
-      });
+  Future<void> _register() async {
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      setState(() => _errorText = "Por favor complete todos los campos");
       return;
     }
 
-    // Simulación de registro exitoso (reemplázalo con Firebase si lo usas)
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
-  }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _errorText = "Las contraseñas no coinciden");
+      return;
+    }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+    setState(() {
+      _isLoading = true;
+      _errorText = null;
+    });
+
+    try {
+      final success = await AuthService.register(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (success && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorText = e.toString());
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registro'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+      appBar: AppBar(title: const Text('Registro')),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             TextField(
               controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Correo electrónico'),
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Correo electrónico',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Contraseña'),
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _confirmPasswordController,
+              decoration: const InputDecoration(labelText: 'Confirmar contraseña'),
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirmar contraseña',
-                border: OutlineInputBorder(),
-              ),
             ),
             if (_errorText != null)
               Padding(
-                padding: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.only(top: 10),
                 child: Text(
                   _errorText!,
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _register,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Registrarse'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              ),
-              child: const Text('¿Ya tienes cuenta? Inicia sesión'),
+              onPressed: _isLoading ? null : _register,
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Registrarse'),
             ),
           ],
         ),
