@@ -1,31 +1,6 @@
-💳 Sistema de Pagos – Reto Técnico
+💳 Sistema de Pagos 
 Este proyecto es la solución al ejercicio técnico solicitado como parte del proceso de selección.
 Consiste en el diseño e implementación de una API REST para un sistema de pagos, junto con una interfaz moderna desarrollada en Flutter.
-
-📄 Descripción del Reto Técnico
-🎯 Objetivo
-Diseñar una API REST que permita:
-
-Registrar nuevos usuarios
-
-Iniciar una transacción de pago
-
-Consultar el historial de transacciones de un usuario
-
-Validar que una transacción esté autorizada antes de procesarla
-
-🧪 Requisitos Técnicos
-✅ Incluir un README con instrucciones de instalación y uso
-
-✅ Implementar pruebas unitarias básicas
-
-✅ Utilizar cualquier framework o lenguaje de programación
-
-✅ Aplicar buenas prácticas de desarrollo y mantener un code style definido
-
-✅ Implementar un despliegue automático mediante CI/CD
-
-⏱️ Duración estimada: 48 horas
 
 📱 Sistema de Pagos - Flutter App
 Esta aplicación simula un sistema de pagos mediante una interfaz desarrollada con Flutter.
